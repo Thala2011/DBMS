@@ -1,0 +1,737 @@
+
+DBMS Practical Exam: Questions and Answers
+
+================================================================================
+Set 1: Employee, Department, Project
+================================================================================
+Questions:
+1. Write a SQL query to create an employee info table 
+2. Write an SQL query to insert employee record into the Employee info table
+3. Alter the Employees table to add a new column named Salary (FLOAT).
+4. Write a query to fetch the number of employees working in the department ‘HR’.
+5. Display the details of employees who work on project P2.
+6. Count the number of employees in each department.
+7. Find the employees whose first name starts with 'A'
+8. List all employees who are not from the 'Delhi (DEL)' location.
+9. Display all unique departments present in the table.
+10. Create a stored procedure to display the full names of all employees.
+
+Answers:
+1. CREATE TABLE Employee (
+       Emp_id INT PRIMARY KEY,
+       emp_fname VARCHAR(50),
+       emp_lname VARCHAR(50),
+       address VARCHAR(100),
+       DOB DATE
+   );
+2. INSERT INTO Employee (Emp_id, emp_fname, emp_lname, address, DOB)
+      VALUES (101, 'Amit', 'Sharma', 'Delhi', '1990-05-15');
+3. ALTER TABLE Employee ADD Salary FLOAT;
+4. SELECT COUNT(*)
+   FROM Employee E
+   JOIN Department D ON E.Emp_id = D.dept_id
+   WHERE D.dept_name = 'HR';
+5. SELECT E.*
+   FROM Employee E
+   JOIN Project P ON E.Emp_id = P.emp_id
+   WHERE P.project_name = 'P2';
+6. SELECT D.dept_name, COUNT(*) AS total_employees
+   FROM Employee E
+   JOIN Department D ON E.Emp_id = D.dept_id
+   GROUP BY D.dept_name;
+7. SELECT * FROM Employee WHERE emp_fname LIKE 'A%';
+8. SELECT * FROM Employee WHERE address NOT LIKE '%DEL%';
+9. SELECT DISTINCT dept_name FROM Department;
+10. DELIMITER //
+    CREATE PROCEDURE GetFullNames()
+    BEGIN
+        SELECT CONCAT(emp_fname, ' ', emp_lname) AS Full_Name
+        FROM Employee;
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 2: Student, Marks, Department
+================================================================================
+Questions:
+1. Write a SQL query to create a student table 
+2. Write an SQL query to insert record into the student table
+3. Display all records from the Students table.
+4. List students from the 'Pune' city.
+5. Retrieve the names and marks of all female students.
+6. Delete Priya Kulkarni data from the table.
+7. Display students who scored more than 75 marks.
+8. Count the number of students in each department.
+9. Sort the students by their marks in descending order.
+10. Find the average marks of students in each department
+11. Display the student(s) with the highest marks.
+12. Write a PL/SQL function that takes a department name as input and returns the average marks of students in that department.
+
+Answers:
+1. CREATE TABLE Student (
+       student_id INT PRIMARY KEY,
+       first_name VARCHAR(50),
+       last_name VARCHAR(50),
+       Gender CHAR(1),
+       city VARCHAR(50),
+       DOB DATE
+   );
+2. INSERT INTO Student (student_id, first_name, last_name, Gender, city, DOB)
+      VALUES (1, 'Priya', 'Kulkarni', 'F', 'Pune', '2000-03-21');
+3. SELECT * FROM Student;
+4. SELECT * FROM Student WHERE city = 'Pune';
+5. SELECT S.first_name, S.last_name, M.marks
+   FROM Student S
+   JOIN Marks M ON S.student_id = M.student_id
+   WHERE S.Gender = 'F';
+6. DELETE FROM Student WHERE first_name = 'Priya' AND last_name = 'Kulkarni';
+7. SELECT * FROM Marks WHERE marks > 75;
+8. SELECT department_id, COUNT(*) AS num_students
+   FROM Student
+   GROUP BY department_id;
+9. SELECT * FROM Marks ORDER BY marks DESC;
+10. SELECT S.department_id, AVG(M.marks) AS avg_marks
+    FROM Student S
+    JOIN Marks M ON S.student_id = M.student_id
+    GROUP BY S.department_id;
+11. SELECT student_id, marks
+    FROM Marks
+    WHERE marks = (SELECT MAX(marks) FROM Marks);
+12. DELIMITER //
+    CREATE FUNCTION AvgMarksByDept(dept VARCHAR(50)) RETURNS FLOAT
+    DETERMINISTIC
+    BEGIN
+        DECLARE avg_m FLOAT;
+        SELECT AVG(M.marks) INTO avg_m
+        FROM Student S
+        JOIN Marks M ON S.student_id = M.student_id
+        JOIN Department2 D ON S.department_id = D.department_id
+        WHERE D.department_name = dept;
+        RETURN avg_m;
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 3: Employee-Works-Company
+================================================================================
+Questions:
+1. Find the names of all employees who work for FBC.
+2. Find the names, street address, and cities of residence of all employees who work for FBC and earn more than Rs. 10,000.
+3. Find all employees who earn more than every employee of "small bank corporation".
+4. Update the company_name where city is Pune.
+5. Display employee name, company name, and company city by joining Employee, Works, and Company.
+6. Find company names starting with 'a'.
+7. Find company names ending with 'a'.
+8. Find the highest salary from Works.
+9. Create a trigger to update the city of an employee in Employee table.
+
+Answers:
+1. SELECT employee_name FROM Works WHERE company_name = 'FBC';
+2. SELECT E.employee_name, E.street, E.city
+   FROM Emp3 E
+   JOIN Works W ON E.employee_name = W.employee_name
+   WHERE W.company_name = 'FBC' AND W.salary > 10000;
+3. SELECT employee_name FROM Works
+   WHERE salary > ALL (
+       SELECT salary FROM Works WHERE company_name = 'small bank corporation'
+   );
+4. UPDATE Company SET company_name = company_name WHERE city = 'Pune';
+5. SELECT E.employee_name, W.company_name, C.city
+   FROM Emp3 E
+   JOIN Works W ON E.employee_name = W.employee_name
+   JOIN Company C ON W.company_name = C.company_name;
+6. SELECT company_name FROM Company WHERE company_name LIKE 'a%';
+7. SELECT company_name FROM Company WHERE company_name LIKE '%a';
+8. SELECT MAX(salary) AS highest_salary FROM Works;
+9. DELIMITER //
+   CREATE TRIGGER trg_update_emp_city
+   BEFORE UPDATE ON Emp3
+   FOR EACH ROW
+   BEGIN
+       SET NEW.city = NEW.city;
+   END;
+//
+   DELIMITER ;
+
+================================================================================
+Set 4: Employee, Position, Duty_allocation
+================================================================================
+Questions:
+1. Find the shift for the employee 'XYZ'.
+2. Get count of different employees for each shift.
+3. Find the employee with the lowest pay rate.
+4. Find the name and pay rate of all employees allocated to duty.
+5. Count the number of employees.
+6. Calculate the total pay rate of the company.
+7. Calculate the average pay rate of the company.
+8. Find the minimum and maximum pay rate using aggregation.
+9. Display employee name, position, and posting number by joining Employee and Position.
+10. Write a PL/SQL cursor to fetch all employee names and skills.
+
+Answers:
+1. SELECT DA.shift_type
+   FROM Duty_allocation DA
+   JOIN Employee4 E ON DA.emp_no = E.emp_no
+   WHERE E.name = 'XYZ';
+2. SELECT shift_type, COUNT(DISTINCT emp_no) AS count_per_shift
+   FROM Duty_allocation
+   GROUP BY shift_type;
+3. SELECT name FROM Employee4
+   WHERE pay_rate = (SELECT MIN(pay_rate) FROM Employee4);
+4. SELECT E.name, E.pay_rate
+   FROM Employee4 E
+   WHERE E.emp_no IN (SELECT emp_no FROM Duty_allocation);
+5. SELECT COUNT(*) AS total_employees FROM Employee4;
+6. SELECT SUM(pay_rate) AS total_payrate FROM Employee4;
+7. SELECT AVG(pay_rate) AS average_payrate FROM Employee4;
+8. SELECT MIN(pay_rate) AS min_payrate, MAX(pay_rate) AS max_payrate FROM Employee4;
+9. SELECT E.name, P.posting_no, P.skill
+   FROM Employee4 E
+   JOIN Position4 P ON E.skill = P.skill;
+10. DELIMITER //
+    CREATE PROCEDURE FetchNamesSkills()
+    BEGIN
+        DECLARE done BOOLEAN DEFAULT FALSE;
+        DECLARE v_name VARCHAR(50);
+        DECLARE v_skill VARCHAR(50);
+        DECLARE cur CURSOR FOR SELECT name, skill FROM Employee4;
+        DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+        OPEN cur;
+        read_loop: LOOP
+            FETCH cur INTO v_name, v_skill;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
+            SELECT v_name AS name, v_skill AS skill;
+        END LOOP;
+        CLOSE cur;
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 5: Project, Employee, Assigned_To
+================================================================================
+Questions:
+1. List all project names.
+2. Find all employees who are assigned to a project.
+3. Display project names with names of employees assigned.
+4. List unique chief architects.
+5. Get details of employees working on project C353.
+6. Get details of employees working on "database" project.
+7. Find employee IDs not on any project.
+8. Display Project_id, Proj_name, emp_id, emp_name.
+9. Use date/time functions: date, time, now, day.
+10. Create trigger to log new project insert into Project_Log.
+
+Answers:
+1. SELECT proj_name FROM Project5;
+2. SELECT DISTINCT E.emp_name
+   FROM Employee5 E
+   JOIN Assigned_To A ON E.emp_id = A.emp_id;
+3. SELECT P.proj_name, E.emp_name
+   FROM Project5 P
+   JOIN Assigned_To A ON P.project_id = A.project_id
+   JOIN Employee5 E ON A.emp_id = E.emp_id;
+4. SELECT DISTINCT chief_arch FROM Project5;
+5. SELECT E.*
+   FROM Employee5 E
+   JOIN Assigned_To A ON E.emp_id = A.emp_id
+   JOIN Project5 P ON A.project_id = P.project_id
+   WHERE P.proj_name = 'C353';
+6. SELECT E.*
+   FROM Employee5 E
+   JOIN Assigned_To A ON E.emp_id = A.emp_id
+   JOIN Project5 P ON A.project_id = P.project_id
+   WHERE P.proj_name LIKE '%database%';
+7. SELECT emp_id FROM Employee5
+   WHERE emp_id NOT IN (SELECT emp_id FROM Assigned_To);
+8. SELECT P.project_id, P.proj_name, E.emp_id, E.emp_name
+   FROM Project5 P
+   JOIN Assigned_To A ON P.project_id = A.project_id
+   JOIN Employee5 E ON A.emp_id = E.emp_id;
+9. SELECT CURDATE(), CURTIME(), NOW(), DAY(NOW());
+10. DELIMITER //
+    CREATE TABLE Project_Log (
+        project_id INT,
+        proj_name VARCHAR(50),
+        log_date DATE
+    );
+    CREATE TRIGGER trg_new_project
+    AFTER INSERT ON Project5
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO Project_Log VALUES (NEW.project_id, NEW.proj_name, CURDATE());
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 6: Student, Subject, Marks
+================================================================================
+Questions:
+1. Show names of students who scored >75 in any subject.
+2. Display each student's name with subject name and marks.
+3. Find average marks in each subject.
+4. Display highest marks in each subject.
+5. List students who scored <40 in any subject.
+6. Display student names living in 'Pune'.
+7. List students with total marks across all subjects.
+8. Count students failed in DBMS.
+9. Construct a view on the schema.
+10. Create stored procedure to return name, subjects, and marks for a Roll_no.
+
+Answers:
+1. SELECT DISTINCT S.Name
+   FROM Student6 S
+   JOIN Marks6 M ON S.Roll_no = M.Roll_no
+   WHERE M.marks > 75;
+2. SELECT S.Name, Sb.Sub_name, M.marks
+   FROM Student6 S
+   JOIN Marks6 M ON S.Roll_no = M.Roll_no
+   JOIN Subject6 Sb ON M.Sub_code = Sb.Sub_code;
+3. SELECT Sub_code, AVG(marks) AS avg_marks FROM Marks6 GROUP BY Sub_code;
+4. SELECT Sub_code, MAX(marks) AS max_marks FROM Marks6 GROUP BY Sub_code;
+5. SELECT DISTINCT S.Name
+   FROM Student6 S
+   JOIN Marks6 M ON S.Roll_no = M.Roll_no
+   WHERE M.marks < 40;
+6. SELECT * FROM Student6 WHERE Address LIKE '%Pune%';
+7. SELECT Roll_no, SUM(marks) AS total_marks FROM Marks6 GROUP BY Roll_no;
+8. SELECT COUNT(*) FROM Marks6
+   WHERE Sub_code = (
+       SELECT Sub_code FROM Subject6 WHERE Sub_name = 'DBMS'
+   ) AND marks < 40;
+9. CREATE VIEW StudentMarksView AS
+   SELECT S.Roll_no, S.Name, Sb.Sub_name, M.marks
+   FROM Student6 S
+   JOIN Marks6 M ON S.Roll_no = M.Roll_no
+   JOIN Subject6 Sb ON M.Sub_code = Sb.Sub_code;
+10. DELIMITER //
+    CREATE PROCEDURE GetStudentDetails(IN sid INT)
+    BEGIN
+        SELECT S.Name, Su.Sub_name, E.marks
+        FROM Student6 S
+        JOIN Marks6 E ON S.Roll_no = E.Roll_no
+        JOIN Subject6 Su ON E.Sub_code = Su.Sub_code
+        WHERE S.Roll_no = sid;
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 7: Doctor, Patient
+================================================================================
+Questions:
+1. Display patient details suffering from 'Cold and cough'.
+2. Display doctor details with specialization = 'Aurvedic'.
+3. Update Patient bill with 5% discount.
+4. Display all doctor names and their specializations.
+5. List patients with bill > ₹5000.
+6. Show all patients and their diseases.
+7. Sort patients by bill descending.
+8. Display total bill collected.
+9. Show distinct diseases.
+10. Create PL/SQL function taking PID and returning bill.
+
+Answers:
+1. SELECT * FROM Patient7 WHERE suffering_from = 'Cold and cough';
+2. SELECT * FROM Doctor7 WHERE Specialization = 'Aurvedic';
+3. UPDATE Patient7 SET Bill = Bill * 0.95;
+4. SELECT Name, Specialization FROM Doctor7;
+5. SELECT * FROM Patient7 WHERE Bill > 5000;
+6. SELECT Name, suffering_from FROM Patient7;
+7. SELECT * FROM Patient7 ORDER BY Bill DESC;
+8. SELECT SUM(Bill) AS total_bill FROM Patient7;
+9. SELECT DISTINCT suffering_from FROM Patient7;
+10. DELIMITER //
+    CREATE FUNCTION GetBill(pid INT) RETURNS FLOAT
+    DETERMINISTIC
+    BEGIN
+        DECLARE b FLOAT;
+        SELECT Bill INTO b FROM Patient7 WHERE PID = pid;
+        RETURN b;
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 8: User, Item, Order
+================================================================================
+Questions:
+1. Display users who ordered books and pen on '17 May 2022'.
+2. Display users whose bill <10000 and >5000.
+3. Display items under stationary category.
+4. Display orders in ascending order.
+5. Display all user names and emails.
+6. List items with quantity <10.
+7. Show item names and prices descending.
+8. Display total number of orders placed.
+9. Calculate total value of all items (qty × price).
+10. Create trigger to update Total_bill on new order.
+
+Answers:
+1. SELECT U.* FROM User8 U
+   JOIN Order8 O ON U.User_Id = O.Order_ID
+   JOIN OrderItem8 OI ON O.Order_ID = OI.Order_ID
+   JOIN Item8 I ON OI.itemID = I.itemID
+   WHERE I.item_Name IN ('book','pen') AND O.OrderDate = '2022-05-17';
+2. SELECT U.* FROM User8 U
+   JOIN Order8 O ON U.User_Id = O.Order_ID
+   WHERE O.Total_bill BETWEEN 5000 AND 10000;
+3. SELECT * FROM Item8 WHERE category = 'stationary';
+4. SELECT * FROM Order8 ORDER BY OrderDate ASC;
+5. SELECT Name, Email FROM User8;
+6. SELECT * FROM Item8 WHERE qty < 10;
+7. SELECT item_Name, price FROM Item8 ORDER BY price DESC;
+8. SELECT COUNT(*) AS total_orders FROM Order8;
+9. SELECT SUM(qty * price) AS total_value FROM Item8;
+10. DELIMITER //
+    CREATE TRIGGER trg_update_total
+    BEFORE INSERT ON OrderItem8
+    FOR EACH ROW
+    BEGIN
+        UPDATE Order8
+        SET Total_bill = Total_bill + (
+            SELECT price FROM Item8 WHERE itemID = NEW.itemID
+        );
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 9: Doctor, Patient, Appointment
+================================================================================
+Questions:
+1. Display all doctor names and their allocated slots.
+2. List patients with bill > ₹5000.
+3. Show all appointments with patient ID and doctor ID.
+4. Count number of patients suffering from each disease.
+5. Display total bill amount collected from all patients.
+6. Create trigger to add record to Patient_Log on new patient.
+7. List all patients whose name starts with 'A'.
+8. Show the highest bill amount.
+9. Show distinct specializations.
+10. List patient names and bills in descending order.
+
+Answers:
+1. SELECT Name, Allocated_Slot FROM Doctor9;
+2. SELECT * FROM Patient9 WHERE Bill > 5000;
+3. SELECT App_ID, PID, Doc_ID FROM Appointment9;
+4. SELECT Suffering_From, COUNT(*) AS count_per_disease
+   FROM Patient9
+   GROUP BY Suffering_From;
+5. SELECT SUM(Bill) AS total_bill FROM Patient9;
+6. DELIMITER //
+    CREATE TABLE Patient_Log (
+        PID INT,
+        Name VARCHAR(50),
+        log_date DATE
+    );
+    CREATE TRIGGER trg_patient_log
+    AFTER INSERT ON Patient9
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO Patient_Log VALUES (NEW.PID, NEW.Name, CURDATE());
+    END;
+//
+    DELIMITER ;
+7. SELECT * FROM Patient9 WHERE Name LIKE 'A%';
+8. SELECT MAX(Bill) AS highest_bill FROM Patient9;
+9. SELECT DISTINCT Specialization FROM Doctor9;
+10. SELECT Name, Bill FROM Patient9 ORDER BY Bill DESC;
+
+================================================================================
+Set 10: Book
+================================================================================
+Questions:
+1. Display all books.
+2. Display all books with price > 300.
+3. Display books with price < 300 AND No_of_pages > 1000.
+4. Find books whose name starts with ‘b’.
+5. Display all unique author names.
+6. List books sorted by price descending.
+7. Display books with more than 300 pages.
+8. Count total number of books.
+9. Find average price of all books.
+10. Write a PL/SQL stored procedure to increase price by 10% for books with pages > 500.
+
+Answers:
+1. SELECT * FROM Book;
+2. SELECT * FROM Book WHERE Price > 300;
+3. SELECT * FROM Book WHERE Price < 300 AND No_of_Pages > 1000;
+4. SELECT * FROM Book WHERE LOWER(Book_Name) LIKE 'b%';
+5. SELECT DISTINCT Author FROM Book;
+6. SELECT * FROM Book ORDER BY Price DESC;
+7. SELECT * FROM Book WHERE No_of_Pages > 300;
+8. SELECT COUNT(*) AS total_books FROM Book;
+9. SELECT AVG(Price) AS avg_price FROM Book;
+10. DELIMITER //
+    CREATE PROCEDURE IncreasePrice()
+    BEGIN
+        UPDATE Book SET Price = Price * 1.10 WHERE No_of_Pages > 500;
+    END;
+//
+    DELIMITER ;
+
+================================================================================
+Set 11: Borrower, Depositor, Branch
+================================================================================
+Questions:
+1. Create a bank info table and insert a value.
+2. Display names of customers who are both depositors and borrowers.
+3. Display names of customers who are borrowers but not depositors.
+4. Select branch_name where assets < assets of Pune branch.
+5. Display distinct branch names.
+6. Check whether each loan number in Borrower is assigned to only one customer.
+7. List borrowers who do not have a deposit account.
+8. Find customer names in both Borrower and Depositor.
+
+Answers:
+1. CREATE TABLE Branch11 (
+       branch_name VARCHAR(50) PRIMARY KEY,
+       branch_city VARCHAR(50),
+       assets FLOAT
+   );
+   CREATE TABLE Borrower11 (cust_name VARCHAR(50), loan_num INT, branch_name VARCHAR(50));
+   CREATE TABLE Depositor11 (cust_name VARCHAR(50), acc_num INT);
+   INSERT INTO Branch11 VALUES ('Pune','Pune',500000);
+2. SELECT cust_name FROM Depositor11
+   WHERE cust_name IN (SELECT cust_name FROM Borrower11);
+3. SELECT cust_name FROM Borrower11
+   WHERE cust_name NOT IN (SELECT cust_name FROM Depositor11);
+4. SELECT branch_name FROM Branch11
+   WHERE assets < (
+       SELECT assets FROM Branch11 WHERE branch_name = 'Pune'
+   );
+5. SELECT DISTINCT branch_name FROM Branch11;
+6. SELECT loan_num, COUNT(*) AS cust_count
+   FROM Borrower11
+   GROUP BY loan_num
+   HAVING COUNT(*) = 1;
+7. SELECT cust_name FROM Borrower11
+   WHERE cust_name NOT IN (SELECT cust_name FROM Depositor11);
+8. SELECT cust_name FROM Borrower11
+   WHERE cust_name IN (SELECT cust_name FROM Depositor11);
+
+================================================================================
+Set 12: Branch, Customer, Loan, Account, Borrower, Depositor
+================================================================================
+Questions:
+1. Write SQL to create tables and insert values.
+2. Find names and addresses of customers who have a loan.
+3. Find total balance of all accounts.
+4. List all customers who are borrowers.
+5. Find all accounts of 'shivaji nagar' branch.
+6. Find customers who took loan from branches in Pune.
+7. Display branch name with total balance.
+8. Create procedure to display accounts for given branch.
+
+Answers:
+1. CREATE TABLE Branch12 (
+       B_No INT PRIMARY KEY,
+       B_name VARCHAR(50),
+       B_city VARCHAR(50),
+       asset FLOAT
+   );
+   CREATE TABLE Customer12 (
+       C_No INT PRIMARY KEY,
+       C_Name VARCHAR(50),
+       C_citystreet VARCHAR(100)
+   );
+   CREATE TABLE Loan12 (Loan_no INT PRIMARY KEY, B_name VARCHAR(50), amount FLOAT);
+   CREATE TABLE Account12 (Acc_No INT PRIMARY KEY, B_name VARCHAR(50), Balance FLOAT);
+   CREATE TABLE Borrower12 (C_No INT, Loan_No INT);
+   CREATE TABLE Depositor12 (C_No INT, Acc_No INT);
+2. SELECT C.C_Name, C.C_citystreet
+   FROM Customer12 C
+   WHERE C.C_No IN (SELECT C_No FROM Borrower12);
+3. SELECT SUM(Balance) AS total_balance FROM Account12;
+4. SELECT DISTINCT C_No FROM Borrower12;
+5. SELECT * FROM Account12 WHERE B_name = 'shivaji nagar';
+6. SELECT DISTINCT C.C_Name
+   FROM Customer12 C
+   JOIN Borrower12 B ON C.C_No = B.C_No
+   JOIN Loan12 L ON B.Loan_No = L.Loan_no
+   JOIN Branch12 Br ON L.B_name = Br.B_name
+   WHERE Br.B_city = 'Pune';
+7. SELECT B_name, SUM(Balance) AS total_balance
+   FROM Account12
+   GROUP BY B_name;
+8. DELIMITER //
+   CREATE PROCEDURE ShowAccounts(IN bname VARCHAR(50))
+   BEGIN
+       SELECT Acc_No, Balance FROM Account12 WHERE B_name = bname;
+   END;
+//
+   DELIMITER ;
+
+================================================================================
+Set 13: Supplier, Parts, Catalog
+================================================================================
+Questions:
+1. Create tables and insert values.
+2. Find suppliers who supply red parts.
+3. Find parts costing > Rs. 250.
+4. Find parts colored green.
+5. List supplier names and parts they supply.
+6. Create procedure to accept color and show parts and suppliers.
+
+Answers:
+1. CREATE TABLE Supplier13 (sid INT PRIMARY KEY, sname VARCHAR(50), address VARCHAR(100));
+   CREATE TABLE Parts13 (pid INT PRIMARY KEY, pname VARCHAR(50), color VARCHAR(20));
+   CREATE TABLE Catalog13 (sid INT, pid INT, cost FLOAT);
+2. SELECT DISTINCT s.sname
+   FROM Supplier13 s
+   JOIN Catalog13 c ON s.sid = c.sid
+   JOIN Parts13 p ON c.pid = p.pid
+   WHERE p.color = 'red';
+3. SELECT pname FROM Parts13
+   WHERE pid IN (SELECT pid FROM Catalog13 WHERE cost > 250);
+4. SELECT pname FROM Parts13 WHERE color = 'green';
+5. SELECT s.sname, p.pname
+   FROM Supplier13 s
+   JOIN Catalog13 c ON s.sid = c.sid
+   JOIN Parts13 p ON c.pid = p.pid;
+6. DELIMITER //
+   CREATE PROCEDURE PartsByColor(IN clr VARCHAR(20))
+   BEGIN
+       SELECT p.pname, s.sname
+       FROM Parts13 p
+       JOIN Catalog13 c ON p.pid = c.pid
+       JOIN Supplier13 s ON c.sid = s.sid
+       WHERE p.color = clr;
+   END;
+//
+   DELIMITER ;
+
+================================================================================
+Set 14: Product, Supplier, Supplies
+================================================================================
+Questions:
+1. Create tables and insert values.
+2. Display all products with price > ₹500.
+3. List suppliers from Pune.
+4. Display names of products supplied by 'ABC Suppliers'.
+5. Count products in each category.
+6. List suppliers supplying >100 units.
+7. Find highest-priced product and its category.
+8. Create trigger to log new product insertion.
+
+Answers:
+1. CREATE TABLE Product14 (product_id INT PRIMARY KEY, product_name VARCHAR(50), category VARCHAR(50), price FLOAT);
+   CREATE TABLE Supplier14 (supplier_id INT PRIMARY KEY, supplier_name VARCHAR(50), city VARCHAR(50));
+   CREATE TABLE Supplies14 (supplier_id INT, product_id INT, quantity_supplied INT);
+2. SELECT * FROM Product14 WHERE price > 500;
+3. SELECT * FROM Supplier14 WHERE city = 'Pune';
+4. SELECT p.product_name
+   FROM Product14 p
+   JOIN Supplies14 s ON p.product_id = s.product_id
+   JOIN Supplier14 sup ON s.supplier_id = sup.supplier_id
+   WHERE sup.supplier_name = 'ABC Suppliers';
+5. SELECT category, COUNT(*) AS count_per_category FROM Product14 GROUP BY category;
+6. SELECT DISTINCT supplier_id FROM Supplies14 WHERE quantity_supplied > 100;
+7. SELECT product_name, price FROM Product14 WHERE price = (SELECT MAX(price) FROM Product14);
+8. DELIMITER //
+   CREATE TABLE Product_Log (product_name VARCHAR(50), category VARCHAR(50), log_date DATE);
+   CREATE TRIGGER trg_product_log
+   AFTER INSERT ON Product14
+   FOR EACH ROW
+   BEGIN
+       INSERT INTO Product_Log VALUES (NEW.product_name, NEW.category, CURDATE());
+   END;
+//
+   DELIMITER ;
+
+================================================================================
+Set 15: Customer, Product, Order, Order_Item
+================================================================================
+Questions:
+1. List customers who placed orders after '2024-01-01'.
+2. Display products with stock < 10.
+3. Show total number of products ordered by each customer.
+4. Find total bill amount for each order.
+5. List product names and quantities ordered in each order.
+6. Find total amount spent by each customer.
+7. Find the most expensive product purchased in any order.
+8. Create trigger to log low-stock products (<5) into Stock_Log.
+
+Answers:
+1. SELECT * FROM Order15 WHERE order_date > '2024-01-01';
+2. SELECT * FROM Product15 WHERE stock < 10;
+3. SELECT O.customer_id, SUM(OI.quantity) AS total_qty
+   FROM Order_Item15 OI
+   JOIN Order15 O ON OI.order_id = O.order_id
+   GROUP BY O.customer_id;
+4. SELECT order_id, total_amount FROM Order15;
+5. SELECT OI.order_id, P.product_name, OI.quantity
+   FROM Order_Item15 OI
+   JOIN Product15 P ON OI.product_id = P.product_id;
+6. SELECT customer_id, SUM(total_amount) AS total_spent FROM Order15 GROUP BY customer_id;
+7. SELECT MAX(P.product_price) AS max_price
+   FROM Product15 P
+   JOIN Order_Item15 OI ON P.product_id = OI.product_id;
+8. DELIMITER //
+   CREATE TABLE Stock_Log (product_name VARCHAR(50), stock INT, alert_date DATE);
+   CREATE TRIGGER trg_low_stock
+   AFTER INSERT OR UPDATE ON Product15
+   FOR EACH ROW
+   BEGIN
+       IF NEW.stock < 5 THEN
+           INSERT INTO Stock_Log VALUES (NEW.product_name, NEW.stock, CURDATE());
+       END IF;
+   END;
+//
+   DELIMITER ;
+
+================================================================================
+Set 16: Student, Subject, Exam_Result
+================================================================================
+Questions:
+1. Create tables and insert values.
+2. Write a SQL query to create a student info table.
+3. Write a SQL query to insert record into student table.
+4. List all customers who placed an order after '2024-01-01'. (duplicate error – ignore)
+5. Display products with stock <10. (irrelevant – ignore)
+6. Show total number of products ordered by each customer. (irrelevant – ignore)
+7. Find total bill amount for each order. (irrelevant – ignore)
+8. List product names and quantities ordered in each order. (irrelevant – ignore)
+9. Write a stored procedure that takes a student ID as input and displays all the subjects and marks for that student.
+
+Answers:
+1. CREATE TABLE Student16 (
+       student_id INT PRIMARY KEY,
+       name VARCHAR(50),
+       class VARCHAR(20),
+       dob DATE,
+       city VARCHAR(50)
+   );
+   CREATE TABLE Subject16 (
+       subject_id INT PRIMARY KEY,
+       subject_name VARCHAR(50),
+       teacher_name VARCHAR(50)
+   );
+   CREATE TABLE Exam_Result16 (
+       student_id INT,
+       subject_id INT,
+       marks INT,
+       FOREIGN KEY (student_id) REFERENCES Student16(student_id),
+       FOREIGN KEY (subject_id) REFERENCES Subject16(subject_id)
+   );
+2. (Same as #1 above)
+3. INSERT INTO Student16 (student_id, name, class, dob, city)
+      VALUES (1, 'Rahul', 'BSc', '2001-08-10', 'Pune');
+9. DELIMITER //
+    CREATE PROCEDURE ShowStudentResults(IN sid INT)
+    BEGIN
+        SELECT S.name, Su.subject_name, E.marks
+        FROM Student16 S
+        JOIN Exam_Result16 E ON S.student_id = E.student_id
+        JOIN Subject16 Su ON E.subject_id = Su.subject_id
+        WHERE S.student_id = sid;
+    END;
+//
+    DELIMITER ;
+
